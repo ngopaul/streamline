@@ -1,6 +1,53 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from app import db
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    menu_items = db.relationship('MenuItem', backref='Category', lazy=True)
+
+    def __repr__(self):
+        return self.name
+
+class Menu(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True)
+    name = db.Column(db.String(100), unique=True, nullable=False) 
+    items = db.relationship('MenuItem', backref='Menu', lazy=True)
+
+    def __repr__(self):
+        return self.name
+    
+
+class MenuItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    menu_id = db.Column(db.Integer, db.ForeignKey('menu.id'), nullable=False)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    normal_price = db.Column(db.Float, unique=False, nullable=False)
+    happy_hour_price = db.Column(db.Float, unique=False, nullable=False)
+    description = db.Column(db.Text, unique=False, nullable=False)
+    # Front-end: Convert input list into long string, where each modifier is separated by spaces
+    modifiers = db.Column(db.Text, unique=False, nullable=False) 
+    order_items = db.relationship('OrderItem', backref='MenuItem', lazy=True)
+
+    def __repr__(self):
+        return self.name + ": " + self.normal_price
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True)
+    table_id = db.Column(db.Integer, db.ForeignKey('table.id'), nullable=False)
+    order_items = db.relationship('OrderItem', backref='Order', lazy=True)
+
+    def __repr(self):
+        return "Order " + str(self.id)
+
+class OrderItems(db.Model):
+    id = db.Column(db.Integer, primary_key=True, unique=True)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey('menuitem.id'), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    modifiers = db.Column(db.Text, unique=False, nullable=False)
+
+    def __repr(self):
+        return "Order Item" + str(self.id)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
