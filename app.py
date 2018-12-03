@@ -17,6 +17,7 @@ def hello_world():
 
 
 
+<<<<<<< HEAD
 
 
 """ TABLES UI """
@@ -25,5 +26,7 @@ def hello_world():
 def make_table(kind, floor_id):
     
 
+=======
+>>>>>>> 43aee17914a634bc3325c664a9392c55991f43d9
 if __name__=="__main__":
     app.run(threaded=True)

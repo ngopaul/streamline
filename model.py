@@ -16,7 +16,6 @@ class Menu(db.Model):
     def __repr__(self):
         return self.name
     
-
 class MenuItem(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
@@ -66,16 +65,18 @@ class Table(db.Model):
     seats = db.Column(db.Integer)
     people = db.Column(db.Integer)
     state = db.Column(db.Integer) # 0 - 4, clean empty, deciding on order, eating, need cleanup, in service, out of service
-    states = {0: "empty", 1: "ordering", 2: "dining", 3: "needs cleanup", 4: "in service", 5: "out of service"}
+    # {0: "empty", 1: "ordering", 2: "dining", 3: "needs cleanup", 4: "in service", 5: "out of service"}
     last_time = db.Column(db.DateTime) # the time the current state started
     orders = db.relationship('Order', backref='table', lazy=True)
     employee = db.relationship('Employee', uselist=False, backref='table')
 
-    def __repr__(self):
-        return 'ID %s: %s/%s people\nCurrently %s.' % self.id, self.people, self.seats, self.states[self.state]
-
     def location(self):
         return self.x, self.y
+   
+    def __repr__(self):
+        return 'ID %s: %s/%s people\nCurrently %s.' % self.id, self.people, self.seats, self.state
+
+    
 
 class Floor(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
@@ -107,6 +108,7 @@ class EmployeeClocks(db.Model):
 
 class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
+    name = db.Column(db.String(100), unique=True, nullable=False) 
     clocks = db.relationship('EmployeeClocks', backref='employee')
     payment_id = db.Column(db.Integer, db.ForeignKey('payment.id'),
         nullable=False)
