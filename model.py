@@ -91,6 +91,7 @@ class Payment(db.Model):
     value = db.Column(db.Float)
     creditcard = db.Column(db.Text)
     names = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, nullable=False, unique=False)
     employee = db.relationship('Employee', uselist=False, backref='table')
 
     def conv_names(self):
