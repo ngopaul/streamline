@@ -26,7 +26,7 @@ def main():
         return render_template("home.html")
     return render_template("home.html", return_values=return_values)
 
-""" TABLES UI """
+""" TABLE """
 
 """ Makes a new table of kind KIND on the specified FLOOR. """
 def table_create(info):
@@ -40,14 +40,17 @@ def table_create(info):
     db.session.commit()
     return table.id
 
+""" Returns a list of table_info_list. """
 def table_read(info = []):
     return [table.info for table in models.Table.query.all()]
 
+""" Updates a table according to information in info. """
 def table_update(info):
     [id, x_pos, y_pos, size, seats, people, state, new_orderitem, delete_orderitem] = info
     # new_orderitem looks like: [menuitemid, modifiers]
     # delete_orderitem looks like: orderid
-    table = User.query.filter_by(id=id).first()
+    # table = User.query.filter_by(id=id).first()
+    table = models.Table.query.filter_by(id=id).first()
     table.x_pos = x_pos
     table.y_pos = y_pos
     table.size = size
@@ -58,7 +61,7 @@ def table_update(info):
         table.state = state
         return table.state
     elif new_orderitem:
-        orderitem = models.OrderItems(order_id=table.order.id, menu_item_id=new_order[0], modifiers=new_order[1])
+        orderitem = models.OrderItems(order_id=table.order.id, menu_item_id=new_orderitem[0], modifiers=new_orderitem[1])
         db.session.add(orderitem)
         db.session.commit()
         return orderitem.id
@@ -68,6 +71,37 @@ def table_update(info):
 """ Deletes a table of a certain ID. """
 def table_delete(ID):
     models.Table.query.filter_by(id=ID).delete()
+    db.session.commit()
+
+""" FLOOR """
+
+""" Creates a new FLOOR. """
+def floor_create(info):
+    vertices = info # vertices is a string of x y pairs: 0,0 20,0 20,30 30,0 
+    floor = models.Floor(vertices=vertices)
+    db.session.add(floor)
+    db.session.commit()
+    return floor.id
+
+""" Returns a list of floor_info s. """
+def floor_read(info = []):
+    return [floor.info for floor in models.Floor.query.all()]
+
+""" Updates a floor by changing its type, or vertices. Multiple changes can be done at once. """
+def floor_update(info):
+    # info = [material, kind, vertices]
+    [id, material, kind, vertices] = info
+    # floor = User.query.filter_by(id=id).first()
+    floor = models.Floor.query.filter_by(id=id).first()
+    floor.material = material
+    floor.kind = kind
+    floor.vertices = vertices
+    return info
+
+""" Deletes a floor, and all the tables on it. """ 
+def floor_delete(ID):
+    models.Floor.query.filter_by(id=ID).delete()
+    models.Table.filter_by(floor_id=ID).delete()
     db.session.commit()
 
 if __name__=="__main__":
