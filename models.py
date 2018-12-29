@@ -34,20 +34,37 @@ class MenuItem(db.Model):
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
-    table_id = db.Column(db.Integer, db.ForeignKey('table.id'), nullable=False)
+    table_id = db.Column(db.Integer, db.ForeignKey('table.id'), nullable=True)
+    to_go = db.Column(db.Boolean)
     order_items = db.relationship('OrderItem', backref='Order', lazy=True)
+    time = db.Column(db.Text(), unique=True, nullable=False)
 
-    def __repr(self):
+    def __repr__(self):
         return "Order " + str(self.id)
 
-class OrderItems(db.Model):
+    def info(self):
+        return {
+            "id" : self.id
+            "table_id" : self.table_id
+            "to_go" : self.to_go
+        }
+
+class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
     menu_item_id = db.Column(db.Integer)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
     modifiers = db.Column(db.Text, unique=False, nullable=False)
 
-    def __repr(self):
-        return "Order Item" + str(self.id)
+    def __repr__(self):
+        return "Order Item " + str(self.id)
+
+    def info(self):
+        return {
+            "id" : self.id
+            "menu_item_id" : self.menu_item_id
+            "order_id" : self.order_id
+            "modifiers" : self.modifiers
+        }
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
