@@ -9,10 +9,6 @@ db = SQLAlchemy(app)
 
 """ app routes """
 
-commands = {
-    'table_create' : table_create
-}
-
 def post_to_function(action, info):
     return commands[action](info)
 
@@ -103,6 +99,12 @@ def floor_delete(ID):
     models.Floor.query.filter_by(id=ID).delete()
     models.Table.filter_by(floor_id=ID).delete()
     db.session.commit()
+
+
+commands = {
+    'table_create' : table_create
+}
+
 
 if __name__=="__main__":
     app.run(threaded=True)
