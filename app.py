@@ -9,10 +9,6 @@ db = SQLAlchemy(app)
 
 """ app routes """
 
-commands = {
-    'table_create' : table_create
-}
-
 def post_to_function(action, info):
     return commands[action](info)
 
@@ -26,7 +22,7 @@ def main():
         return render_template("home.html")
     return render_template("home.html", return_values=return_values)
 
-""" TABLE """
+#region TABLE
 
 """ Makes a new table of kind KIND on the specified FLOOR. """
 def table_create(info):
@@ -42,7 +38,7 @@ def table_create(info):
 
 """ Returns a list of table_info_list. """
 def table_read(info = []):
-    return [table.info for table in models.Table.query.all()]
+    return [table.info() for table in models.Table.query.all()]
 
 """ Updates a table according to information in info. """
 def table_update(info):
@@ -61,19 +57,23 @@ def table_update(info):
         table.state = state
         return table.state
     elif new_orderitem:
-        orderitem = models.OrderItems(order_id=table.order.id, menu_item_id=new_orderitem[0], modifiers=new_orderitem[1])
+        orderitem = models.OrderItem(order_id=table.order.id, menu_item_id=new_orderitem[0], modifiers=new_orderitem[1])
         db.session.add(orderitem)
         db.session.commit()
         return orderitem.id
     elif delete_orderitem:
-        models.OrderItems.query.filter_by(id=delete_orderitem).delete()
+        models.OrderItem.query.filter_by(id=delete_orderitem).delete()
+    db.session.commit()
+    return info
 
 """ Deletes a table of a certain ID. """
 def table_delete(ID):
     models.Table.query.filter_by(id=ID).delete()
     db.session.commit()
 
-""" FLOOR """
+#endregion TABLE
+
+#region FLOOR
 
 """ Creates a new FLOOR. """
 def floor_create(info):
@@ -85,9 +85,9 @@ def floor_create(info):
 
 """ Returns a list of floor_info s. """
 def floor_read(info = []):
-    return [floor.info for floor in models.Floor.query.all()]
+    return [floor.info() for floor in models.Floor.query.all()]
 
-""" Updates a floor by changing its type, or vertices. Multiple changes can be done at once. """
+""" Updates a FLOOR by changing its type, or vertices. Multiple changes can be done at once. """
 def floor_update(info):
     # info = [material, kind, vertices]
     [id, material, kind, vertices] = info
@@ -96,13 +96,83 @@ def floor_update(info):
     floor.material = material
     floor.kind = kind
     floor.vertices = vertices
+    db.session.commit()
     return info
 
-""" Deletes a floor, and all the tables on it. """ 
+""" Deletes a FLOOR, and all the TABLEs on it. """ 
 def floor_delete(ID):
     models.Floor.query.filter_by(id=ID).delete()
     models.Table.filter_by(floor_id=ID).delete()
     db.session.commit()
+
+#endregion FLOOR
+
+#region ORDER
+
+""" Creates a new ORDER. ORDERs do not contain any ORDERITEMs by default. """
+def order_create(info):
+    [table_id, to_go] = info
+    if to_go:
+        order = models.Order(to_go = to_go)
+    else:
+        order = models.Order(table_id = table_id, to_go = to_go)
+    db.session.add(order)
+    db.session.commit()
+    return order.id
+
+""" Returns a list of order_info s. """
+def floor_read(info = []):
+    return [order.info() for order in model.Order.query.all()]
+
+""" Updates an ORDER by changing its kind to/from to-go. (if you want to add an ORDERITEM, see the CRUD for ORDERITEM)."""
+def order_update(info):
+    [id, to_go, table_id] = info
+    order = models.Order.query.filter_by(id=id).first()
+    if order.to_go and not to_go:
+        order.table_id = table_id
+    order.to_go = to_go
+    db.session.commit()
+    return info
+
+""" Deletes an ORDER. Do after saving proper information to disk and customer has paid. """
+def order_delete(ID):
+    models.Order.query.filter_by(id=ID).delete()
+    db.session.commit()
+
+#endregion ORDER
+
+#region ORDERITEM
+
+""" Creates a new ORDERITEM. """
+def orderitem_create(info):
+    [menu_item_id, order_id, modifiers] = info
+    orderitem = models.OrderItem(menu_item_id = menu_item_id, order_id = order_id, modifiers = modifiers)
+    db.session.add(orderitem)
+    db.session.commit()
+    return orderitem.id
+
+""" Returns a list of orderitem info """
+def orderitem_read(info = []):
+    return [orderitem.info() for orderitem in model.OrderItem.query.all()]
+
+""" Updates an ORDERITEM by changing its modifiers. Other changes would be deletion and creation only."""
+def orderitem_update(info):
+    [id, modifiers] = info
+    orderitem = models.OrderItem.query.filter_by(id=id).first()
+    orderitem.modifiers = modifiers
+    db.session.commit()
+    return info
+
+""" Deletes an ORDERITEM. """
+def orderitem_delete(ID):
+    models.OrderItem.query.filter_by(id=ID).delete()
+    db.session.commit()
+
+#endregion ORDERITEM
+
+commands = {
+    'table_create' : table_create
+}
 
 if __name__=="__main__":
     app.run(threaded=True)
