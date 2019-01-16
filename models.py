@@ -16,7 +16,6 @@ class Menu(db.Model):
     def __repr__(self):
         return self.name
     
-
 class MenuItem(db.Model):
     id = db.Column(db.Integer, primary_key=True, unique=True)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
